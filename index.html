@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrystalMark X24</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script
+        src="https://code.jquery.com/jquery-3.7.0.min.js"
+        integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
+        crossorigin="anonymous"></script>
+    <script src="js/app.js"></script>
+</head>
+<body>
+    <main>
+    <h1>CrystalMark X24</h1>
+
+    <div class="container">
+        <div class="menu">
+            <button id="benchmark" class="button-053">
+                ベンチマーク
+            </button>
+        </div>        
+        <div id="list"></div>
+    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+            from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); //RealtimeDBに接続
+        const dbRef = ref(db, "benchmark"); //RealtimeDB内の"benchmark"を使う
+
+        // benchmark クリックイベント
+        $("#benchmark").on("click", function(){
+            const key = Math.floor((Math.random() * 1000000) + 1);
+            const single = benchmark();
+            const platform = "Web";
+            const cpu = "Unknown";
+            const system = "Unknown";
+            const now = new Date();
+            const date = now.toLocaleString();
+
+            const jsonValue = {
+                "id": key,
+                "single": single,
+                "platform": platform,
+                "cpu": cpu,
+                "system": system,
+                "date": date
+            };
+
+            const newPostRef = push(dbRef); // ユニークKEYを生成
+            set(newPostRef, jsonValue);     // データ登録
+        });
+
+        // 読み込みが完了したら実行
+        $(function(){
+           
+        });
+
+        onChildAdded(dbRef, function (data) {
+            const json = data.val();   //オブジェクトデータを取得
+            const key = data.key;      //データのユニークキー（削除や更新に使用可能）
+
+            // const json = JSON.parse(msg);
+            const html =
+            `
+            <div class="grid">
+                <div class="id">ID: ${json.id}</div>
+                <div class="platform">OS: ${json.platform}</div>
+                <div class="date">${json.date}</div>
+                <div class="cpu">CPU: ${json.cpu}</div>
+                <div class="system">SYS: ${json.system}</div>
+                <div class="single">${json.single}</div>
+            </div>
+            `;
+            $("#list").append(html);
+        });
+        </script>
+    </main>
+</body>
+</html>
